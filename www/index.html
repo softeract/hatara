@@ -1,24 +1,101 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
-    <!--
-        Customize the content security policy in the meta tag below as needed. Add 'unsafe-inline' to default-src to enable inline JavaScript.
-        For details, see http://go.microsoft.com/fwlink/?LinkID=617521
-    -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *">
-        
-        <meta name="format-detection" content="telephone=no">
-        <meta name="msapplication-tap-highlight" content="no">
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
         <link rel="stylesheet" type="text/css" href="css/index.css">
-        <title>hatara</title>
+        <title>Hatara</title>
     </head>
     <body>
-        <div class="app">
-            <p id="deviceready" class="event">Connecting to Device</p>
+        <div class="navbar-fixed">
+            <nav class="green darken-4">
+                <div class="nav-wrapper">
+                    <a href="#!" class="brand-logo center">Hatara</a>
+                    <a href="#" data-activates="mobile-bar" class="button-collapse"><i class="material-icons">menu</i></a>
+                    <ul class="right hide-on-med-and-down">
+                        <li><a href="settings.html">Settings</a></li>
+                        <li><a href="about.html">About</a></li>
+                    </ul>
+                    <ul class="side-nav" id="mobile-bar">
+                        <li><a href="settings.html">Settings</a></li>
+                        <li><a href="about.html">About</a></li>
+                    </ul>
+                </div>
+            </nav>
         </div>
+        <div class="container">
+            <div class="center">
+                <div class="row">
+                    <div class="col s12 m6">
+                        <div class="card  light-green accent-4">
+                            <div class="card-content white-text">
+                                <span class="card-title">Welcome!</span>
+                                <p>
+                                    Press "Scan" so that your credentials are scanned by the system and record the current time for your Clock In/Out.
+                                </p>
+                            </div>
+                            <div class="card-action">
+                                <a class="waves-effect waves-light green btn-large" target="_blank" href="javascript:scan();">Scan</a>
+                                <a class="waves-effect waves-light green btn-large" target="_blank" href="javascript:display();">Display</a>
+                                <a class="waves-effect waves-light green btn-large" target="_blank" href="javascript:clear();">Clear</a>
+                                <p id="display"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+        <!--Some sort of weird Loading text at the bottom of the app. Probably has something to do with jQuery Mobile-->
         <script type="text/javascript" src="cordova.js"></script>
+        <!--I deleted an index.js and need to find out what it does that gives me the exceptions (Javier Bravo)-->
         <script type="text/javascript" src="scripts/platformOverrides.js"></script>
-        <script type="text/javascript" src="scripts/index.js"></script>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+        <script>
+            /*The following plays with the sidebar in mobile devices*/
+            $(document).ready(function () {
+                $(".button-collapse").sideNav();
+            });
+            /*Stores an array in local storage*/
+            if (localStorage.getItem("LocalData") == null) {
+                var data = [];
+                data = JSON.stringify(data);
+                localStorage.setItem("LocalData", data);
+            }
+            /*The following scans the barcodes*/
+            function scan() {
+                cordova.plugins.barcodeScanner.scan(
+                    function (result) {
+                        if (!result.cancelled) {
+                            if (result.format == "QR_CODE") {
+                                var dt = new Date();
+                                var currentTime = dt.getHours() + ":" + dt.getMinutes();
+                                var value = result.text;
+                                var data = localStorage.getItem("LocalData");
+                                console.log(data);
+                                data = JSON.parse(data);
+                                data[data.length] = [currentTime, value];
+                                localStorage.setItem("LocalData", JSON.stringify(data));
+                            }
+                        }
+                    },
+                    function (error) {
+                        alert("Scanning failed: " + error);
+                    }
+               );
+            }
+            function display() {
+                var data = localStorage.getItem("LocalData");
+                data = JSON.parse(data);
+                var clearstring = document.getElementById("display");
+                clearstring.innerHTML = data.join();
+            }
+            function clear() {
+                localStorage.clear();
+            }
+        </script>
     </body>
 </html>
